@@ -1,7 +1,5 @@
-const { User } = require("./User.js");
-const { Board } = require("./Board.js");
-const { Cheese } = require("./Cheese.js");
-const { sequelize, Sequelize } = require("./db.js")
+const { User, Board, Cheese } = require("./index.js");
+const { sequelize } = require("./db.js")
 
 describe("Cheese Board Tests", () => {
 
@@ -14,7 +12,9 @@ describe("Cheese Board Tests", () => {
             name: "Divya Ranat",
             email: "divyaranat@email.com"
         });
+
         const foundUser = await User.findOne()
+
         expect(testUser instanceof User).toBe(true);
         expect(foundUser.name).toBe("Divya Ranat");
         expect(foundUser.email).toBe("divyaranat@email.com");
@@ -26,7 +26,9 @@ describe("Cheese Board Tests", () => {
             description: "Round",
             rating: 7
         });
+
         const foundBoard = await Board.findOne();
+
         expect(testBoard instanceof Board).toBe(true);
         expect(foundBoard.type).toBe("Wood");
         expect(foundBoard.description).toBe("Round");
@@ -38,9 +40,117 @@ describe("Cheese Board Tests", () => {
             title: "Cheddar",
             description: "Yellow"
         });
+
         const foundCheese = await Cheese.findOne();
+
         expect(testCheese instanceof Cheese).toBe(true);
         expect(foundCheese.title).toBe("Cheddar");
         expect(foundCheese.description).toBe("Yellow");
+    })
+
+    test("User can have many Boards", async() => {
+        const testUser = await User.create({
+            name: "Divya Ranat",
+            email: "divyaranat@email.com"
+        });
+        const testBoard1 = await Board.create({
+            type: "Wood",
+            description: "Round",
+            rating: 7
+        });
+        const testBoard2 = await Board.create({
+            type: "Metal",
+            description: "Square",
+            rating: 9
+        });
+
+        await testUser.addBoards([testBoard1, testBoard2]);
+        const foundBoards = await testUser.getBoards();
+
+        const foundUser = await testBoard1.getUser();
+        //Why is this null??
+        console.log(foundUser)
+
+        expect(testUser instanceof User).toBe(true);
+        expect(testBoard1 instanceof Board).toBe(true);
+        expect(testBoard2 instanceof Board).toBe(true);
+        expect(foundBoards[0].type).toBe("Wood");
+        expect(foundBoards[1].type).toBe("Metal");
+        expect(await testUser.countBoards()).toBe(2);
+        //expect(foundUser[0].name).toBe("Divya");
+    })
+
+    test("Board can have many Cheese", async() => {
+        const testBoard = await Board.create({
+            type: "Wood",
+            description: "Round",
+            rating: 7
+        });
+        const testCheese1 = await Cheese.create({
+            title: "Cheddar",
+            description: "Yellow"
+        });
+        const testCheese2 = await Cheese.create({
+            title: "Swiss",
+            description: "Holey"
+        });
+
+        await testBoard.addCheeses([testCheese1, testCheese2]);
+        const foundCheeses = await testBoard.getCheeses();
+        
+        expect(testBoard instanceof Board).toBe(true);
+        expect(testCheese1 instanceof Cheese).toBe(true);
+        expect(testCheese2 instanceof Cheese).toBe(true);
+        expect(await testBoard.countCheeses()).toBe(2);
+        expect(foundCheeses[0].title).toBe("Cheddar");
+        expect(foundCheeses[1].title).toBe("Swiss");
+    })
+
+    test("Cheese can have many Board", async() => {
+        const testBoard1 = await Board.create({
+            type: "Wood",
+            description: "Round",
+            rating: 7
+        });
+        const testBoard2 = await Board.create({
+            type: "Metal",
+            description: "Square",
+            rating: 9
+        });
+        const testCheese = await Cheese.create({
+            title: "Cheddar",
+            description: "Yellow"
+        });
+
+        await testCheese.addBoards([testBoard1, testBoard2]);
+        const foundBoards = await testCheese.getBoards();
+        
+        expect(testBoard1 instanceof Board).toBe(true);
+        expect(testBoard2 instanceof Board).toBe(true);
+        expect(testCheese instanceof Cheese).toBe(true);
+        expect(await testCheese.countBoards()).toBe(2);
+        expect(foundBoards[0].type).toBe("Wood");
+        expect(foundBoards[1].type).toBe("Metal");
+    })
+
+    test("Board can be loaded with Cheese", async() => {
+        const testBoard = await Board.create({
+            type: "Wood",
+            description: "Round",
+            rating: 7
+        });
+        const testCheese1 = await Cheese.create({
+            title: "Cheddar",
+            description: "Yellow"
+        });
+        const testCheese2 = await Cheese.create({
+            title: "Swiss",
+            description: "Holey"
+        });
+
+        const foundBoard = await Board.findOne({
+            include: Cheese
+        })
+        console.log(foundBoard)
     })
 })
