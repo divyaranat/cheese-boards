@@ -148,9 +148,61 @@ describe("Cheese Board Tests", () => {
             description: "Holey"
         });
 
+        await testBoard.addCheeses([testCheese1, testCheese2]);
+
         const foundBoard = await Board.findOne({
             include: Cheese
         })
-        console.log(foundBoard)
+
+        expect(foundBoard.Cheeses[0].title).toBe("Cheddar");
+        expect(foundBoard.Cheeses[1].title).toBe("Swiss");
+    });
+
+    test("User can be loaded with Board", async() => {
+        const testUser = await User.create({
+            name: "Divya Ranat",
+            email: "divyaranat@email.com"
+        });
+        const testBoard1 = await Board.create({
+            type: "Wood",
+            description: "Round",
+            rating: 7
+        });
+        const testBoard2 = await Board.create({
+            type: "Metal",
+            description: "Square",
+            rating: 9
+        });
+
+        await testUser.addBoards([testBoard1, testBoard2]);
+
+        const foundUser = await User.findOne({ include: Board });
+
+        expect(foundUser.Boards[0].type).toBe("Wood");
+        expect(foundUser.Boards[1].type).toBe("Metal");
+    })
+
+    test("Cheese can be loaded with Board", async() => {
+        const testBoard1 = await Board.create({
+            type: "Wood",
+            description: "Round",
+            rating: 7
+        });
+        const testBoard2 = await Board.create({
+            type: "Metal",
+            description: "Square",
+            rating: 9
+        });
+        const testCheese = await Cheese.create({
+            title: "Cheddar",
+            description: "Yellow"
+        });
+
+        await testCheese.addBoards([testBoard1, testBoard2]);
+
+        const foundCheese = await Cheese.findOne({ include: Board });
+
+        expect(foundCheese.Boards[0].type).toBe("Wood");
+        expect(foundCheese.Boards[1].type).toBe("Metal");
     })
 })
